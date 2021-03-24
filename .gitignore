@@ -1,5 +1,5 @@
 .ipynb_checkpoints
-.aux
-.log
-.synctex.gz
-.DS_store
+*.aux
+*.log
+*.synctex.gz
+*.DS_store
