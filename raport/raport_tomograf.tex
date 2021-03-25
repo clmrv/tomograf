@@ -8,7 +8,7 @@
 \usepackage{listings}
 \usepackage{xcolor} % do komentarzy
 
-\marginsize{2.5cm}{2.5cm}{2cm}{2cm}
+\marginsize{2cm}{2cm}{2cm}{2cm}
 
 \title{Symulator tomografu komputerowego}
 \author{Przemysław Ambroży, Błażej Celmer}
@@ -139,4 +139,78 @@ for i in range(x1, x2):
 				\end{figure}
 			
 			\subsection{Standard DICOM}
+			Wyniki zapisujemy w standardzie DICOM. 
+			{\color{red} Czy mam opisywać co to jest za standard?}
+			Do obsługi standardu używamy biblioteki \texttt{pydicom}. W pliku, oprócz samego skanu, zapisujemy też dane pacjenta (imię i nazwisko, płeć, datę urodzenia), komentarze, datę i czas badania. Wykorzystujemy w tym celu następujące pola:
+			\begin{figure}[!h]
+				\centering
+				\begin{tabular}{|c|c|c|}
+				\hline
+				\textbf{Identyfikator pola} & \textbf{Nazwa pola} & \textbf{Opis} \\
+				\hline \hline
+				(0008, 0023) & Content Date & data badania \\
+				\hline
+				(0008, 0033) & Content Time & czas badania \\
+				\hline
+				(0010, 0010) & Patient's Name & imię i nazwisko pacjenta \\
+				\hline
+				(0010, 0030) & Patient's Birth Date & data urodzenia pacjenta \\
+				\hline
+				(0010, 0040) & Patient's Sex & płeć pacjenta \\
+				\hline
+				(0010, 4000) & Patient Comments & komentarze \\
+				\hline
+				(0028, 0010) & Rows & liczba wierszy obrazka (wysokość) \\
+				\hline
+				(0028, 0011) & Columns & liczba kolumn obrazka (szerokość) \\
+				\hline
+				(7fe0, 0010) & Pixel Data & obrazek (piksele) \\
+				\hline
+				\end{tabular}
+				\caption{Niektore z wykorzystanych pól}
+			\end{figure}
+			\newpage
+			Fragment kodu odpowiedzialnego za zapis pokazuje rysunek \ref{dicomsave}. Do odczytu pliku skorzystaliśmy z funkcji \texttt{pydicom.dcmread(filename)}, która pozwala następnie na dostęp do wszystkich pól z pliku.
+			{\color{red} Czy dodać kod odczytu pliku?}
+			
+			\begin{figure}[!h]
+				\centering
+				\begin{lstlisting}[language=Python, frame=single]
+ds = FileDataset(filename, {}, file_meta=file_meta, preamble=b"\0" * 128)
+ds.PatientName = name
+ds.PatientSex = sex
+ds.PatientBirthDate = birth.strftime('%Y%m%d')
+ds.PatientComments = comment
+
+ds.ContentDate = date.strftime('%Y%m%d')
+ds.ContentTime = date.strftime('%H%M%S.%f')
+
+# 1 lub 3 - ile kolorow na obrazie
+ds.SamplesPerPixel = 1
+# interpretacja (MONOCHROME, RGB, HSV, ...)
+ds.PhotometricInterpretation = "MONOCHROME2"
+# 0 - unsigned int, 1 - U2
+ds.PixelRepresentation = 0
+# najwyzszy bit
+ds.HighBit = 15
+# ilosc bitow na piksel
+ds.BitsStored = 16
+# ilosc bitow zaalokowanych na piksel
+ds.BitsAllocated = 16
+# minimalna wartosc piksela - 0
+ds.SmallestImagePixelValue = str.encode('\x00\x00')
+# maksymalna wartosc piksela - ffff?
+ds.LargestImagePixelValue = str.encode('\xff\xff')
+# kolumny, wiersze i dane
+ds.Columns = image.shape[1]
+ds.Rows = image.shape[0]
+ds.PixelData = (image * 65535).astype('uint16').tobytes()
+
+ds = correct_ambiguous_vr(ds, True)
+ds.save_as(filename, write_like_original=False)
+				\end{lstlisting}
+				\caption{Fragment kodu -- zapis do pliku DICOM}
+				\label{dicomsave}
+			\end{figure}
+			
 \end{document}
