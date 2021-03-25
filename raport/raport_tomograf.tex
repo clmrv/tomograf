@@ -16,16 +16,22 @@
 \begin{document} 
 	\maketitle
 	
- 	\section{Model}
-		\begin{center}
-			\includegraphics[scale=0.7]{img/model.png} \\
-			\small{rys. 1. model stożkowy}
-		\end{center}
-		Zastosowany został model stożkowy (rys. 1.).
+	\section{Wstęp}
+		Ćwiczenie zakłada zasymulowanie tomografu komputerowego. 
+		Korzystając z obrazów i zdjęć postaramy się wygenerować ich sinogram, 
+		który reprezentuje dane odczytane z detektorów tomografu.
+		Następnie, przekształcimy go do postaci wynikowej -- czytelnej dla człowieka.
+ 	
+	\section{Model}
+			\begin{figure}[h]
+				\centering
+				\includegraphics[scale=0.7]{img/model.png}
+				\caption{model stożkowy}
+			\end{figure}
+		Zastosowany został model stożkowy (rysunek 1.).
 		 Zakłada on wykorzystanie jednego emitera,
 		  który współpracuje ze wszystkimi detektorami, tworząc wspomniany stożek 
 		  (W przeciwieństwie do modelu równoległego, gdzie każdy detektor posiada własny emiter).
-		 {\color{red}  coś bym tu jeszcze dopisał }
 		
 	\section{Program}
 		\subsection{Środowisko}
@@ -49,9 +55,24 @@
 				Aby otrzymać sinogram, należy wykonać n iteracji, 
 				w których emiter wraz z~detektorami będzie się stopniowo przesuwał po okręgu, 
 				aż obrócimy cały układ o 180 stopni. 
-				Podczas każdej iteracji wyznaczamy współrzędne punktów, w których znajduje się emiter oraz detektory.
-				
-				{\color{red} Opis wyznaczana współrzędnych}
+				Podczas każdej iteracji wyznaczamy współrzędne punktów, w których znajduje się emiter $E$ oraz detektory $D_i$.
+				\begin{center}
+					\begin{tabular} {l l l}
+						$ E = [ x_E, y_E ] $ 	& \hspace{2cm}	 &	$ D_i = [x_{D_i}, y_{D_i}] $
+						\\
+						$ x_E = r \times \cos{\alpha} $ 	& \hspace{2cm}	 &	 $ x_{D_i} = r \times \cos{\big(\alpha + \pi - \frac{\phi}{2} + i \times \frac{\phi}{n-1}\big)} $
+						 \\ 
+						$ y_E = r \times \sin{\alpha} $ 	& \hspace{2cm}	 &	 $ y_{D_i} =  r \times \sin{\big(\alpha + \pi - \frac{\phi}{2} + i \times \frac{\phi}{n-1}\big)}$ 
+						\\
+					\end{tabular}
+				\end{center}
+				gdzie: \\
+				\indent $r$ -- połowa przekątnej obrazu, \\
+				\indent $\alpha$ -- kąt przesunięcia systemu względem obrazu, \\
+				\indent $\phi$ -- rozpiętość kątowa układu detektorów. \\ \\
+				Wyznaczone współrzędne zakładają punkt $(0,0)$, jako środek systemu/obrazu.
+				 Należy przekształcić je do układu współrzędnych obrazu,
+				  gdzie punkt $(0,0)$ znajduje się w jednym z narożników.
 				
 				Aby pobrać dane z obiektu znajdującego się między emiterem a detektorami (w naszym przypadku z obrazka), wykorzystujemy algorytm \textbf{Bresenhama}. Służy on do wyznaczenia pikseli znajdujących się między dwoma punktami. Przechodzi iteracyjnie przez wszystkie wartości na jednej osi (np. OX, jeśli obrazek jest szerszy niż wyższy). W każdym kroku decyduje, czy wykonać tylko ruch wzdłuż jednej osi (poziomo/pionowo), czy obu (na ukos).
 				
@@ -89,7 +110,33 @@ for i in range(x1, x2):
 				Wyznaczamy linie przechodzące przez obraz między emiterem i detektorami (algorytm Bresenhama).
 				Każdy piksel, przez który przechodzi linia będzie rozjaśniony o wartość odczytaną z sinogramu 
 				(dla danego detektora w danej iteracji). 
-				Nałożenie wszystkich linii na obrazie stworzy obraz wynikowy.
-				{\color{red} to samo co wyżej, no i myślę jeszcze o jakiś obrazkach}
+				Nałożenie wszystkich linii na obrazie, stworzy obraz wynikowy.
+				
+				\begin{figure}[!h]
+					\centering
+					\begin{minipage}{0.45\linewidth}
+						\includegraphics[width=\linewidth]{../tomograf-zdjecia/Shepp_logan.jpg} 
+						\caption{obraz wejściowy}
+					\end{minipage}
+					\hfill
+					\begin{minipage}{0.45\linewidth}
+						\includegraphics[width=\linewidth]{img/out_1.png}
+						\caption{obraz wyjściowy -- 1. iteracja}
+					\end{minipage}
+				\end{figure} 
+				
+				\begin{figure}[!h]
+					\centering
+					\begin{minipage}{0.45\linewidth}
+						\includegraphics[width=\linewidth]{img/out_30.png}
+						\caption{obraz wyjściowy -- 30. iteracja}
+					\end{minipage}
+					\hfill
+					\begin{minipage}{0.45\linewidth}
+						\includegraphics[width=\linewidth]{img/out_90.png}
+						\caption{obraz wyjściowy -- 90. (ostatnia) iteracja}
+					\end{minipage}
+				\end{figure}
+			
 			\subsection{Standard DICOM}
 \end{document}
