@@ -44,6 +44,7 @@
 				\item[matplotlib] wyświetlanie grafik
 				\item[ipywidgets] interfejs użytkownika
 				\item[pydicom] odczyt i zapis plików DICOM
+				\item[cv2] zwiększenie kontrastu przefiltrowanych zdjęć
 			\end{description}
 			
 			\subsection{Opis działania}
@@ -138,14 +139,9 @@ for i in range(x1, x2):
 						\end{minipage}
 					\end{figure} 
 				
-				\subsection{Filtracja}
-					\begin{figure}[!h]
-						\centering
-						\includegraphics[scale=0.35]{img/out_180_filtered.png}
-						\caption{obraz wyjściowy z zastosowanym filtrem}
-					\end{figure}
+				\subsection{Filtr}
 					Obraz wynikowy jest w znaczącym stopniu rozmyty.
-					Aby temu zapobiec, należy każdy dodatni sygnał z detektorów otoczyć ujemnymi wartościami (Rysunek 10-11).
+					Aby temu zapobiec, należy każdy dodatni sygnał z detektorów otoczyć ujemnymi wartościami.
 					\begin{figure}[!h]
 					\centering
 						\begin{lstlisting}[language=Python, frame=single]
@@ -160,22 +156,23 @@ out = fft.irfft(out_freq)
 					Dane z detektorów przekształcamy do dziedziny częstotliwościowej,
 					 mnożymy przez filtr, 
 					 po czym wracamy do dziedziny przestrzennej.
-					
+					Obraz po filtracji znacząco zyska na ostrości, lecz utraci na rozpiętości tonalnej.
+					Z tego powodu przepuszczamy go przez funkcję zwiększającą kontrast.
 					
 					\begin{figure}[!h]
 						\centering
 						\begin{minipage}{0.45\linewidth}
 							\includegraphics[width=\linewidth]{img/filtr_1.png}
-							\caption{przykładowy obraz z detektorów}
+							\caption{przykładowe dane z detektorów}
 						\end{minipage}
 						\hfill
 						\begin{minipage}{0.45\linewidth}
 							\includegraphics[width=\linewidth]{img/filtr_2.png}
-							\caption{obraz z detektorów po przefiltrowaniu}
+							\caption{dane z detektorów po przefiltrowaniu}
 						\end{minipage}
 					\end{figure}
 			
-			\newpage
+			
 			\subsection{Standard DICOM}
 			Wyniki zapisujemy w standardzie DICOM. 
 			{\color{red} Czy mam opisywać co to jest za standard?}
@@ -252,8 +249,43 @@ ds.save_as(filename, write_like_original=False)
 			\end{figure}
 			
 	\section{Eksperyment}
-		Korzystając z miary RMSE, sprawdzimy, jak poszczególne parametry wpływają na 
+		Korzystając z miary RMSE sprawdzimy, 
+		jak poszczególne parametry wpływają na jakość obrazu wyjściowego. 
 		
 		\subsection{Porównanie obrazu z filtrem i bez}
-			{\color{red} tutaj podpunkt 5. c.}
+			\begin{figure}[!h]
+				\centering
+				\begin{minipage}{0.45\linewidth}
+					\includegraphics[width=\linewidth]{img/shepp_nf.png}
+					\caption{wynik bez filtracji, RMSE - 0.25}
+				\end{minipage}
+				\hfill
+				\begin{minipage}{0.45\linewidth}
+					\includegraphics[width=\linewidth]{img/shepp_f.png}
+					\caption{wynik z filtrem, RMSE - 0.46}
+				\end{minipage}
+			\end{figure}
+			
+			\begin{figure}[!h]
+				\centering
+				\begin{minipage}{0.45\linewidth}
+					\includegraphics[width=\linewidth]{img/saddle_nf.png}
+					\caption{wynik bez filtracji, RMSE - 0.31}
+				\end{minipage}
+				\hfill
+				\begin{minipage}{0.45\linewidth}
+					\includegraphics[width=\linewidth]{img/saddle_f.png}
+					\caption{wynik z filtrem, RMSE - 0.33}
+				\end{minipage}
+			\end{figure}
+			Różnica w jakości obrazów jest znacząca. 
+			Obrazy wyprodukowane przy użyciu filtra są wyraźne i szczegółowe. 
+			Miara jakości RMSE (mniej - lepiej) faworyzuje obrazy bez filtracji. 
+			Miara ta oblicza średnią różnicę koloru dla każdego piksela (w porównaniu do obrazu wejściowego). 
+			Obrazy z filtrem, mimo swojej dokładności, 
+			różnią się odcieniem od oryginalnego obrazu. 
+			Obrazy bez filtra, mimo bycia rozmazanymi, 
+			średnio bardziej odpowiadają oryginałowi. 
+			Ponad to, filtracja wprowadza artefakty w postaci jasnych linii, 
+			szczególnie widocznych na ciemnym tle.
 \end{document}
