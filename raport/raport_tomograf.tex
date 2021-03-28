@@ -6,6 +6,7 @@
 \usepackage{siunitx}
 \usepackage{graphicx}
 \usepackage{listings}
+\usepackage{pgfplots}
 \usepackage{xcolor} % do komentarzy
 
 \marginsize{2cm}{2cm}{2cm}{2cm}
@@ -252,6 +253,61 @@ ds.save_as(filename, write_like_original=False)
 		Korzystając z miary RMSE sprawdzimy, 
 		jak poszczególne parametry wpływają na jakość obrazu wyjściowego. 
 		
+		\subsection{Wpływ parametrów na jakość obrazu}
+		Do sprawdzenia wpływu parametrów, skorzystaliśmy z obrazu \texttt{Shepp\_logan.jpg}.
+		
+		Liczba detektorów wydaje się mieć negatywny wpływ na jakość obrazu wynikowego, tak samo jak liczba skanów. Zastosowanie większej rozpiętości wachlarza pozwala z kolei na zmniejszenie różnicy między obrazem wyjściowym, a oryginałem.
+		
+		\begin{figure}[!h]
+			\begin{minipage}{0.48\linewidth}
+				\begin{tikzpicture}
+					\begin{axis}[xlabel=Liczba detektorów, ylabel=RMSE, only marks, xtick distance=90]
+					\addplot coordinates {
+						(	90	,	0.19766641872181315	)
+						(	180	,	0.21241692941458212	)
+						(	270	,	0.26905462144543296	)
+						(	360	,	0.3185885394517024	)
+						(	450	,	0.3639450780220456	)
+						(	540	,	0.4146778824868383	)
+						(	630	,	0.4395340917953436	)
+						(	720	,	0.4303860322190707	)
+					};
+					\end{axis}
+				\end{tikzpicture}
+			\end{minipage}
+			\hfill
+			\begin{minipage}{0.48\linewidth}
+				\begin{tikzpicture}
+					\begin{axis}[xlabel=Liczba skanów, ylabel=RMSE, only marks, xtick distance=90]
+					\addplot coordinates {
+						(	90	,	0.40514008531762963	)
+						(	180	,	0.4303860322190707	)
+						(	270	,	0.4074154900101807	)
+						(	360	,	0.4325980832846058	)
+						(	450	,	0.43395246125538883	)
+					};
+					\end{axis}
+				\end{tikzpicture}
+			\end{minipage}
+		\end{figure}
+		
+		\begin{figure}
+			\centering
+			\begin{tikzpicture}
+				\begin{axis}[xlabel={Rozpiętość wachlarza [°]}, ylabel=RMSE, only marks, xtick distance=45]
+				\addplot coordinates {
+					(	45	,	0.2362	)
+					(	90	,	0.2195	)
+					(	135	,	0.2471	)
+					(	180	,	0.2124	)
+					(	225	,	0.2091	)
+					(	270	,	0.211	)
+				};
+				\end{axis}
+			\end{tikzpicture}
+		\end{figure}
+		
+		
 		\subsection{Porównanie obrazu z filtrem i bez}
 			\begin{figure}[!h]
 				\centering
@@ -288,4 +344,5 @@ ds.save_as(filename, write_like_original=False)
 			średnio bardziej odpowiadają oryginałowi. 
 			Ponad to, filtracja wprowadza artefakty w postaci jasnych linii, 
 			szczególnie widocznych na ciemnym tle.
+			
 \end{document}
