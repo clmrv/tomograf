@@ -54,7 +54,7 @@
 				a każda kolumna oznacza jeden detektor.
 				Aby otrzymać sinogram, należy wykonać n iteracji, 
 				w których emiter wraz z~detektorami będzie się stopniowo przesuwał po okręgu, 
-				aż obrócimy cały układ o 180 stopni. 
+				aż obrócimy cały układ o 360 stopni. 
 				Podczas każdej iteracji wyznaczamy współrzędne punktów, w których znajduje się emiter $E$ oraz detektory $D_i$.
 				\begin{center}
 					\begin{tabular} {l l l}
@@ -102,42 +102,80 @@ for i in range(x1, x2):
 				Na koniec normalizujemy wszystkie dane, tak aby wartości były z~przedziału od~0~do~1. W tym celu znajdujemy największą wartość (najjaśniejszy piksel) i dzielimy przez nią pozostałe.
 				
 				\subsubsection{Obraz wynikowy}
-				Sinogram nie jest zrozumiały dla człowieka, 
-				dlatego należy go przekształcić.
-				Zaczynamy od czarnego obrazu i znów przejdziemy przez n iteracji.
-				Każdej iteracji przypisana będzie pozycja emitera wraz z~detektorami 
-				(będą to te same pozycje, co podczas generowania sinogramu).
-				Wyznaczamy linie przechodzące przez obraz między emiterem i detektorami (algorytm Bresenhama).
-				Każdy piksel, przez który przechodzi linia będzie rozjaśniony o wartość odczytaną z sinogramu 
-				(dla danego detektora w danej iteracji). 
-				Nałożenie wszystkich linii na obrazie, stworzy obraz wynikowy.
+					Sinogram nie jest zrozumiały dla człowieka, 
+					dlatego należy go przekształcić.
+					Zaczynamy od czarnego obrazu i znów przejdziemy przez n iteracji.
+					Każdej iteracji przypisana będzie pozycja emitera wraz z~detektorami 
+					(będą to te same pozycje, co podczas generowania sinogramu).
+					Wyznaczamy linie przechodzące przez obraz między emiterem i detektorami (algorytm Bresenhama).
+					Każdy piksel, przez który przechodzi linia będzie rozjaśniony o wartość odczytaną z sinogramu 
+					(dla danego detektora w danej iteracji). 
+					Nałożenie wszystkich linii na obrazie, stworzy obraz wynikowy.
 				
-				\begin{figure}[!h]
-					\centering
-					\begin{minipage}{0.45\linewidth}
-						\includegraphics[width=\linewidth]{../tomograf-zdjecia/Shepp_logan.jpg} 
-						\caption{obraz wejściowy}
-					\end{minipage}
-					\hfill
-					\begin{minipage}{0.45\linewidth}
-						\includegraphics[width=\linewidth]{img/out_1.png}
-						\caption{obraz wyjściowy -- 1. iteracja}
-					\end{minipage}
-				\end{figure} 
+					\begin{figure}[!h]
+						\centering
+						\begin{minipage}{0.45\linewidth}
+							\includegraphics[width=\linewidth]{../tomograf-zdjecia/Shepp_logan.jpg} 
+							\caption{obraz wejściowy}
+						\end{minipage}
+						\hfill
+						\begin{minipage}{0.45\linewidth}
+							\includegraphics[width=\linewidth]{img/out_1.png}
+							\caption{obraz wyjściowy -- 1. iteracja}
+						\end{minipage}
+					\end{figure} 
 				
-				\begin{figure}[!h]
+					\begin{figure}[!h]
+						\centering
+						\begin{minipage}{0.45\linewidth}
+							\includegraphics[width=\linewidth]{img/out_30.png}
+							\caption{obraz wyjściowy -- 30. iteracja}
+						\end{minipage}
+						\hfill
+						\begin{minipage}{0.45\linewidth}
+							\includegraphics[width=\linewidth]{img/out_90.png}
+							\caption{obraz wyjściowy -- 90. iteracja}
+						\end{minipage}
+					\end{figure} 
+				
+				\subsection{Filtracja}
+					\begin{figure}[!h]
+						\centering
+						\includegraphics[scale=0.35]{img/out_180_filtered.png}
+						\caption{obraz wyjściowy z zastosowanym filtrem}
+					\end{figure}
+					Obraz wynikowy jest w znaczącym stopniu rozmyty.
+					Aby temu zapobiec, należy każdy dodatni sygnał z detektorów otoczyć ujemnymi wartościami (Rysunek 10-11).
+					\begin{figure}[!h]
 					\centering
-					\begin{minipage}{0.45\linewidth}
-						\includegraphics[width=\linewidth]{img/out_30.png}
-						\caption{obraz wyjściowy -- 30. iteracja}
-					\end{minipage}
-					\hfill
-					\begin{minipage}{0.45\linewidth}
-						\includegraphics[width=\linewidth]{img/out_90.png}
-						\caption{obraz wyjściowy -- 90. (ostatnia) iteracja}
-					\end{minipage}
+						\begin{lstlisting}[language=Python, frame=single]
+iteracja_freq = fft.rfft(iteracja)
+filtr = np.floor(np.arange(0.5, len(iteracja)//2 + 0.1, 0.5 ))
+out_freq = iteracja_freq * filtr
+out = fft.irfft(out_freq)
+						\end{lstlisting}
+						\caption{fragment kodu filtrującego}
 				\end{figure}
+					
+					Dane z detektorów przekształcamy do dziedziny częstotliwościowej,
+					 mnożymy przez filtr, 
+					 po czym wracamy do dziedziny przestrzennej.
+					
+					
+					\begin{figure}[!h]
+						\centering
+						\begin{minipage}{0.45\linewidth}
+							\includegraphics[width=\linewidth]{img/filtr_1.png}
+							\caption{przykładowy obraz z detektorów}
+						\end{minipage}
+						\hfill
+						\begin{minipage}{0.45\linewidth}
+							\includegraphics[width=\linewidth]{img/filtr_2.png}
+							\caption{obraz z detektorów po przefiltrowaniu}
+						\end{minipage}
+					\end{figure}
 			
+			\newpage
 			\subsection{Standard DICOM}
 			Wyniki zapisujemy w standardzie DICOM. 
 			{\color{red} Czy mam opisywać co to jest za standard?}
@@ -213,4 +251,9 @@ ds.save_as(filename, write_like_original=False)
 				\label{dicomsave}
 			\end{figure}
 			
+	\section{Eksperyment}
+		Korzystając z miary RMSE, sprawdzimy, jak poszczególne parametry wpływają na 
+		
+		\subsection{Porównanie obrazu z filtrem i bez}
+			{\color{red} tutaj podpunkt 5. c.}
 \end{document}
