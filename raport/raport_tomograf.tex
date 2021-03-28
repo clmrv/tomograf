@@ -176,8 +176,9 @@ out = fft.irfft(out_freq)
 			
 			\subsection{Standard DICOM}
 			Wyniki zapisujemy w standardzie DICOM. 
-			{\color{red} Czy mam opisywać co to jest za standard?}
-			Do obsługi standardu używamy biblioteki \texttt{pydicom}. W pliku, oprócz samego skanu, zapisujemy też dane pacjenta (imię i nazwisko, płeć, datę urodzenia), komentarze, datę i czas badania. Wykorzystujemy w tym celu następujące pola:
+			Do jego obsługi używamy biblioteki \texttt{pydicom}.
+			W pliku, oprócz samego skanu, zapisujemy też dane pacjenta (imię i nazwisko, płeć, datę urodzenia), komentarze, datę i czas badania.
+			Wykorzystujemy w tym celu następujące pola:
 			\begin{figure}[!h]
 				\centering
 				\begin{tabular}{|c|c|c|}
@@ -207,7 +208,6 @@ out = fft.irfft(out_freq)
 			\end{figure}
 			\newpage
 			Fragment kodu odpowiedzialnego za zapis pokazuje rysunek \ref{dicomsave}. Do odczytu pliku skorzystaliśmy z funkcji \texttt{pydicom.dcmread(filename)}, która pozwala następnie na dostęp do wszystkich pól z pliku.
-			{\color{red} Czy dodać kod odczytu pliku?}
 			
 			\begin{figure}[!h]
 				\centering
@@ -253,15 +253,14 @@ ds.save_as(filename, write_like_original=False)
 		Korzystając z miary RMSE sprawdzimy, 
 		jak poszczególne parametry wpływają na jakość obrazu wyjściowego. 
 		
+		\newpage
 		\subsection{Wpływ parametrów na jakość obrazu}
-		Do sprawdzenia wpływu parametrów, skorzystaliśmy z obrazu \texttt{Shepp\_logan.jpg}.
 		
-		Liczba detektorów wydaje się mieć negatywny wpływ na jakość obrazu wynikowego, tak samo jak liczba skanów. Zastosowanie większej rozpiętości wachlarza pozwala z kolei na zmniejszenie różnicy między obrazem wyjściowym, a oryginałem.
 		
 		\begin{figure}[!h]
 			\begin{minipage}{0.48\linewidth}
 				\begin{tikzpicture}
-					\begin{axis}[xlabel=Liczba detektorów, ylabel=RMSE, only marks, xtick distance=90]
+					\begin{axis}[xlabel=Liczba detektorów (bez filtowania), ylabel=RMSE, only marks, xtick distance=90]
 					\addplot coordinates {
 						(	90	,	0.19766641872181315	)
 						(	180	,	0.21241692941458212	)
@@ -278,36 +277,73 @@ ds.save_as(filename, write_like_original=False)
 			\hfill
 			\begin{minipage}{0.48\linewidth}
 				\begin{tikzpicture}
-					\begin{axis}[xlabel=Liczba skanów, ylabel=RMSE, only marks, xtick distance=90]
+					\begin{axis}[xlabel=Liczba detektorów (z filtowaniem), ylabel=RMSE, only marks, xtick distance=90]
 					\addplot coordinates {
-						(	90	,	0.40514008531762963	)
-						(	180	,	0.4303860322190707	)
-						(	270	,	0.4074154900101807	)
-						(	360	,	0.4325980832846058	)
-						(	450	,	0.43395246125538883	)
+						(	90	,	0.47944557897904283	)
+						(	180	,	0.4672745431104078	)
+						(	270	,	0.46244981936422036	)
+						(	360	,	0.4574380736275415	)
+						(	450	,	0.4548210642769736	)
+						(	540	,	0.4520704744176787	)
+						(	630	,	0.4501465702251961	)
+						(	720	,	0.4484138396604839	)
 					};
 					\end{axis}
 				\end{tikzpicture}
 			\end{minipage}
 		\end{figure}
 		
-		\begin{figure}
+		\begin{figure}[!h]
 			\centering
-			\begin{tikzpicture}
-				\begin{axis}[xlabel={Rozpiętość wachlarza [°]}, ylabel=RMSE, only marks, xtick distance=45]
-				\addplot coordinates {
-					(	45	,	0.2362	)
-					(	90	,	0.2195	)
-					(	135	,	0.2471	)
-					(	180	,	0.2124	)
-					(	225	,	0.2091	)
-					(	270	,	0.211	)
-				};
-				\end{axis}
-			\end{tikzpicture}
+			\begin{minipage}{0.48\linewidth}
+				\begin{tikzpicture}
+					\begin{axis}[xlabel=Liczba skanów, ylabel=RMSE, only marks, xtick distance=90]
+					\addplot coordinates {
+						(	90	,	0.2174929558603675	)
+						(	180	,	0.21241692941458212	)
+						(	270	,	0.20935852709603195	)
+						(	360	,	0.2082807671066534	)
+						(	450	,	0.20821266152493592	)
+						(	540	,	0.20863697322807373	)
+						(	630	,	0.20817212780354352	)
+						(	720	,	0.2069512394127205	)
+					};
+					\end{axis}
+				\end{tikzpicture}
+			\end{minipage}
+			\hfill
+			\begin{minipage}{0.48\linewidth}
+				\begin{tikzpicture}
+					\begin{axis}[xlabel={Rozpiętość wachlarza [°]}, ylabel=RMSE, only marks, xtick distance=45]
+					\addplot coordinates {
+						(	45	,	0.2362	)
+						(	90	,	0.2195	)
+						(	135	,	0.2471	)
+						(	180	,	0.2124	)
+						(	225	,	0.2091	)
+						(	270	,	0.211	)
+					};
+					\end{axis}
+				\end{tikzpicture}
+			\end{minipage}
+			
 		\end{figure}
 		
 		
+		Do sprawdzenia wpływu parametrów, skorzystaliśmy z obrazu \texttt{Shepp\_logan.jpg}.
+				
+		Wraz ze wzrostem \textbf{liczby detektorów}, wartość parametru RMSE rośnie. Jednak przy oglądaniu wynikowych obrazów, większa liczba detektorów powoduje, że obraz zawiera więcej szczegółów. Połączenie małej liczby detektorów i filtrowania powoduje, że w wynikowym obrazie powstają defekty w postaci kręgów. 
+		Przy małej liczbie detektorów i filtrowaniu w wynikowym obrazie powstają defekty w postaci kręgów.
+		
+		W przypadku testowania zmiany liczby detektorów z włączonym filtrowaniem, efekt jest odwrotny: wraz ze wzrostem ich liczby, błąd maleje.
+		
+		Zwiększenie \textbf{liczby skanów} ma pozytywny wpływ na jakość obrazu wynikowego.
+		Gdy jest ich więcej, mniej widoczne stają się linie biegnące ze środka obrazu do zewnątrz, a także sam środek jest bardziej wyraźny, ma mniej defektów.
+		
+		Zastosowanie większej \textbf{rozpiętości wachlarza} również pozwala na zmniejszenie różnicy między obrazem wyjściowym, a oryginałem.
+		Bardzo mała rozpiętość powoduje, że wynik zdecydowanie odbiega od oczekiwań -- nie przypomina w żadnym stopniu obrazu wejściowego.
+		
+		\newpage
 		\subsection{Porównanie obrazu z filtrem i bez}
 			\begin{figure}[!h]
 				\centering
@@ -342,7 +378,7 @@ ds.save_as(filename, write_like_original=False)
 			różnią się odcieniem od oryginalnego obrazu. 
 			Obrazy bez filtra, mimo bycia rozmazanymi, 
 			średnio bardziej odpowiadają oryginałowi. 
-			Ponad to, filtracja wprowadza artefakty w postaci jasnych linii, 
+			Ponadto, filtracja wprowadza artefakty w postaci jasnych linii, 
 			szczególnie widocznych na ciemnym tle.
 			
 \end{document}
