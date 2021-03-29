@@ -12,7 +12,7 @@
 \marginsize{2cm}{2cm}{2cm}{2cm}
 
 \title{Symulator tomografu komputerowego}
-\author{Przemysław Ambroży, Błażej Celmer}
+\author{Przemysław Ambroży (141182), Błażej Celmer (141197)}
 
 \begin{document} 
 	\maketitle
@@ -114,7 +114,7 @@ for i in range(x1, x2):
 				\subsubsection{Obraz wynikowy}
 					Sinogram nie jest zrozumiały dla człowieka, 
 					dlatego należy go przekształcić.
-					Zaczynamy od czarnego obrazu i znów przejdziemy przez n iteracji.
+					Zaczynamy od czarnego obrazu i~znów przejdziemy przez n iteracji.
 					Każdej iteracji będzie przypisana pozycja emitera wraz z~detektorami 
 					(będą to te same pozycje, co podczas generowania sinogramu).
 					Wyznaczamy linie przechodzące przez obraz między emiterem i detektorami (algorytm Bresenhama).
@@ -166,7 +166,7 @@ out = fft.irfft(out_freq)
 					 mnożymy przez filtr, 
 					 po czym wracamy do dziedziny przestrzennej.
 					Obraz po filtracji znacząco zyska na ostrości, lecz utraci na rozpiętości tonalnej.
-					Z tego powodu przepuszczamy go przez funkcję zwiększającą kontrast.
+					Z~tego powodu przepuszczamy go przez funkcję zwiększającą kontrast.
 					
 					\begin{figure}[!h]
 						\centering
@@ -241,9 +241,9 @@ ds.HighBit = 15
 ds.BitsStored = 16
 # ilosc bitow zaalokowanych na piksel
 ds.BitsAllocated = 16
-# minimalna wartosc piksela - 0
+# minimalna wartosc piksela - 0x0000
 ds.SmallestImagePixelValue = str.encode('\x00\x00')
-# maksymalna wartosc piksela - ffff?
+# maksymalna wartosc piksela - 0xffff
 ds.LargestImagePixelValue = str.encode('\xff\xff')
 # kolumny, wiersze i dane
 ds.Columns = image.shape[1]
