@@ -71,386 +71,190 @@
 			\end{enumerate}
 		
 		\subsection{Uczenie maszynowe}
+			Na początek wstępnie edytujemy obraz wejściowy. Używamy niektórych funkcji z przetwarzania obrazu tj.:
+			\begin{itemize}
+				\item dostosowanie gamma
+				\item dostosowanie ekspozycji
+				\item rozmycie gaussowskie
+				\item wyostrzenie
+			\end{itemize}
+			W kolejnym kroku dzielimy obraz na fragmenty o określonym rozmiarze (zazwyczaj od 5x5 do 9x9 pikseli).
+			Te fragmenty zachodzą na siebie, tak każdy piksel ze zdjęcia posiadał fragment, w którym on jest na środku.
+			Z pobranych fragmentów usuwamy te, które są poza obszarem oka (czarne tło).
+			Następnie wybieramy losowe próbki ze zdjęcia w proporcji 50\% z klasy negatywnej i 50\% z pozytywnej.
+			Każdą próbkę zamieniamy na zestaw cech dla klasyfikatora.
+			W naszym przypadku jest to wektor wartości RGB kolejnych pikseli w fragmencie. 
+			Proces jest powtarzany dla kilku zdjęć wejściowych, aby otrzymać więcej danych.
+			
+			Uczymy klasyfikator, korzystając z wygenerowanych cech wraz z odpowiadającym im wynikiem z maski eksperckiej. 
+			Nasz klasyfikator to las decyzyjny (sklearn.tree.DecisionTreeClassifier).
+			Został wytrenowany na zbiorze 500000 losowych próbek o rozmiarze 9x9 z zdjęć 
+			\textit{01L}, \textit{01R}, \textit{02R}, \textit{03L}, \textit{03R}.
 		
 		\subsection{Głęboka sieć neuronowa}
+			Obraz, przed wejściem do sieci, dzielony jest na fragmenty o wielkości 19x19 pikseli.
+Następnie na każdym fragmencie wykonywana jest globalna normalizacja kontrastu.
+Obliczana jest średnia i odchylenie standardowe każdego kanału we fragmencie (czerwony, zielony i niebieski).
+Następnie każdy kanał każdego piksela jest normalizowany —- odejmowana
+jest od niego średnia i dzielony jest przez odchylenie standardowe.
+Poniżej przedstawione zostało działanie tej funkcji na wybranym fragmencie:
+\\ wstawić porównanie
+Do trenowania wykorzystano 500 tysięcy losowych fragmentów pochodzących z plików \textit{01L}, \textit{01R}, \textit{02L}, \textit{02R}, \textit{03L}, \textit{03R}. Dane zostały następnie podzielone na zbiór treningowy (67%) i testowy (33%).
+
+Sieć została stworzona z wykorzystaniem biblioteki \texttt{keras}.
+Składa się z 23 warstw i przypomina architekturę U-Net. 
+Początkowo zastosowano dwie warstwy konwolucyjne o filtrze (wymiarowości wyjścia) równym 32 i rozmiarze okna 3x3.
+Następnie zastosowano warstwę max pooling o oknie 2x2 przemieszczającym się o 2, która zmniejsza wielkość wyjścia.
+Taki zestaw warstw powtórzono, zmieniając filtr na wartości: 48, 64, 96, 64, 38, 32.
+Na końcu zastosowano warstwę wypłaszczającą oraz warstwę, gdzie każdy neuron jest połączony ze sobą (Dense) o sigmoidalnej funkcji aktywacji.
+
+Do danych z wyjścia sieci zastosowano próg 0.3, powyżej którego piksel uznawany jest za naczynie.
+
+Wstępna ocena sieci na danych testowych:
+\begin{itemize}
+    \item strata (loss) = 8.39%
+    \item trafność (accuracy) = 96.99%
+\end{itemize}
+
+\subsubsection*{Rozmiar wycinka}
+Zastosowano rozmiar wycinka 19x19. Mniejsze wycinki powodowały pogorszenie parametrów, przy większych czas tworzenia fragmentów i wstępnego przetwarzania był bardzo długi. Poniżej porównanie miar dla tego samego obrazka przy zastosowaniu różnych wycinków:
+
+\begin{tabular}{|r|c|c|}
+\hline
+box               & 17                                            & 19                                            \\ \hline \hline
+TP                & 59039                                         & 58529                                         \\ \hline
+TN                & 829336                                        & 830092                                        \\ \hline
+FP                & 23448                                         & 18842                                         \\ \hline
+FN                & 16129                                         & 16639                                         \\ \hline
+accuracy          & 0.9574                                        & 0.9616                                        \\ \hline
+sensitivity       & 0.7854                                        & 0.7786                                        \\ \hline
+specificity       & 0.9725                                        & 0.9778                                        \\ \hline
+balanced accuracy & 0.879                                         & 0.8782                                        \\ \hline
+F1                & 0.749                                         & 0.7674                                        \\ \hline
+Obraz             & \includegraphics[width=4cm]{./dane/box17.jpg} & \includegraphics[width=4cm]{./dane/box19.jpg} \\ \hline
+\end{tabular}		
 		
 	\section{Wyniki}
-	\newpage
+		Obrazy wynikowe dla poszczególnych metod są przedstawione jako porównanie z maską ekspercką.
+		\begin{description}
+			\item [zielony] prawdziwie pozytywna
+			\item [żółty] fałszywie pozytywna
+			\item [czerwony] fałszywie negatywna
+			\item [czarny] prawdziwie negatywna
+		\end{description}
+\newpage
 	
+		\subsection{04L}
+
 \begin{figure}[!h]
 	\centering
-	\begin{minipage}{0.35\linewidth}
-		\includegraphics[width=\linewidth]{./dane/01L.png}
-		\caption{obraz wejściowy}
+	\begin{minipage}{0.26\linewidth}
+		\includegraphics[width=\linewidth]{../chase/Image_04L.jpg}
+		\centering
+			\small{obraz wejściowy}
 	\end{minipage}
 	\hfill
-	\begin{minipage}{0.45\linewidth}
-		\begin{tabular}{|>{\columncolor[gray]{0.9}}c|c|c|}
-			\hline \rowcolor{Gray}
-			\diagbox{\textbf{pred.}}{\textbf{act.}} & \textbf{positives} & \textbf{negatives} \\ \hline
-			\textbf{positives} & 45031& 25517 \\ \hline
-			\textbf{negatives} & 21854& 866638 \\ \hline
-		\end{tabular}
-		\begin{tabular}{l r}
-			Accuracy (trafność): & 0.9506 \\
-			Sensitivity (czułość): & 0.6733 \\
-			Specificity (swoistość): & 0.9714 \\
-			Balanced accuracy: & 0.8223 \\
-			F1 score: & 0.6553 \\
-		\end{tabular}
+	\begin{minipage}{0.26\linewidth}
+		\includegraphics[width=\linewidth]{../chase/Image_04L_1stHO.png}
+		\centering
+			\small{maska ekspercka}
+	\end{minipage}
+\end{figure}
+\input{./dane/przetwarzanie obrazu/04L.txt}
+\input{./dane/uczenie maszynowe/04L.txt}
+\input{./dane/głęboka sieć neuronowa/04L.txt}
+
+
+
+		\subsection{05R}
+
+\begin{figure}[!h]
+	\centering
+	\begin{minipage}{0.26\linewidth}
+		\includegraphics[width=\linewidth]{../chase/Image_05R.jpg}
+		\centering
+			\small{obraz wejściowy}
+	\end{minipage}
+	\hfill
+	\begin{minipage}{0.26\linewidth}
+		\includegraphics[width=\linewidth]{../chase/Image_05R_1stHO.png}
+		\centering
+			\small{maska ekspercka}
 	\end{minipage}
 \end{figure}
 
+\input{./dane/przetwarzanie obrazu/05R.txt}
+\input{./dane/uczenie maszynowe/05R.txt}
+\input{./dane/głęboka sieć neuronowa/05R.txt}
 
+
+
+		\subsection{06L}
+
+\begin{figure}[!h]
+	\centering
+	\begin{minipage}{0.26\linewidth}
+		\includegraphics[width=\linewidth]{../chase/Image_06L.jpg}
+		\centering
+			\small{obraz wejściowy}
+	\end{minipage}
+	\hfill
+	\begin{minipage}{0.26\linewidth}
+		\includegraphics[width=\linewidth]{../chase/Image_06L_1stHO.png}
+		\centering
+			\small{maska ekspercka}
+	\end{minipage}
+\end{figure}
+\input{./dane/przetwarzanie obrazu/06L.txt}
+\input{./dane/uczenie maszynowe/06L.txt}
+\input{./dane/głęboka sieć neuronowa/06L.txt}
+
+
+
+		\subsection{07R}
+		
+\begin{figure}[!h]
+	\centering
+	\begin{minipage}{0.26\linewidth}
+		\includegraphics[width=\linewidth]{../chase/Image_07R.jpg}
+		\centering
+			\small{obraz wejściowy}
+	\end{minipage}
+	\hfill
+	\begin{minipage}{0.26\linewidth}
+		\includegraphics[width=\linewidth]{../chase/Image_07R_1stHO.png}
+		\centering
+			\small{maska ekspercka}
+	\end{minipage}
+\end{figure}
+\input{./dane/przetwarzanie obrazu/07R.txt}
+\input{./dane/uczenie maszynowe/07R.txt}
+\input{./dane/głęboka sieć neuronowa/07R.txt}
+
+
+
+		\subsection{08L}
+
+\begin{figure}[!h]
+	\centering
+	\begin{minipage}{0.26\linewidth}
+		\includegraphics[width=\linewidth]{../chase/Image_08L.jpg}
+		\centering
+			\small{obraz wejściowy}
+	\end{minipage}
+	\hfill
+	\begin{minipage}{0.26\linewidth}
+		\includegraphics[width=\linewidth]{../chase/Image_08L_1stHO.png}
+		\centering
+			\small{maska ekspercka}
+	\end{minipage}
+\end{figure}
+\input{./dane/przetwarzanie obrazu/08L.txt}
+\input{./dane/uczenie maszynowe/08L.txt}
+\input{./dane/głęboka sieć neuronowa/08L.txt}
 
 
 	
 	\section{Wnioski}
 		
-		
-\iffalse
-
-			\subsection{Opis działania}
-				\subsubsection{Sinogram}
-				
-				Sinogram, jest to tablica danych, 
-				gdzie każdy wiersz to jedna iteracja (pozycja emitera), 
-				a każda kolumna oznacza jeden detektor.
-				Aby otrzymać sinogram, należy wykonać n iteracji, 
-				w których emiter wraz z~detektorami będzie się stopniowo przesuwał po okręgu, 
-				aż obrócimy cały układ o 360 stopni. 
-				Podczas każdej iteracji wyznaczamy współrzędne punktów, w których znajduje się emiter $E$ oraz detektory $D_i$.
-				\begin{center}
-					\begin{tabular} {l l l}
-						$ E = [ x_E, y_E ] $ 	& \hspace{2cm}	 &	$ D_i = [x_{D_i}, y_{D_i}] $
-						\\
-						$ x_E = r \times \cos{\alpha} $ 	& \hspace{2cm}	 &	 $ x_{D_i} = r \times \cos{\big(\alpha + \pi - \frac{\phi}{2} + i \times \frac{\phi}{n-1}\big)} $
-						 \\ 
-						$ y_E = r \times \sin{\alpha} $ 	& \hspace{2cm}	 &	 $ y_{D_i} =  r \times \sin{\big(\alpha + \pi - \frac{\phi}{2} + i \times \frac{\phi}{n-1}\big)}$ 
-						\\
-					\end{tabular}
-				\end{center}
-				gdzie: \\
-				\indent $r$ -- połowa przekątnej obrazu, \\
-				\indent $\alpha$ -- kąt przesunięcia systemu względem obrazu, \\
-				\indent $\phi$ -- rozpiętość kątowa układu detektorów. \\ \\
-				Wyznaczone współrzędne zakładają punkt $(0,0)$, jako środek systemu/obrazu.
-				 Należy przekształcić je do układu współrzędnych obrazu,
-				  gdzie punkt $(0,0)$ znajduje się w jednym z jego narożników.
-				
-				Aby pobrać dane z obiektu znajdującego się między emiterem a detektorami (w naszym przypadku z obrazka),
-				 wykorzystujemy algorytm \textbf{Bresenhama}.
-				  Służy on do wyznaczenia pikseli leżących na linii między dwoma punktami. 
-				  Przechodzi iteracyjnie przez wszystkie wartości na jednej osi
-				   (np. OX, jeśli obrazek jest szerszy niż wyższy).
-				    W każdym kroku decyduje,
-				     czy wykonać tylko ruch wzdłuż jednej osi (poziomo/pionowo), czy obu (na ukos).
-				
-				\begin{figure}[!h]
-					\centering
-					\begin{minipage}{0.4\linewidth}
-						\begin{lstlisting}[language=Python, frame=single]
-for i in range(x1, x2):
-    points.append((i, j))
-    if e > 0:
-        j += m
-        e += 2 * (dy - dx)
-    else:
-        e += 2 * dy
-						\end{lstlisting}
-						\caption{Fragment kodu algorytmu}
-					\end{minipage}
-					\hfill
-					\begin{minipage}{0.45\linewidth}
-						\includegraphics[width=\textwidth]{img/bresenham.png}
-						\caption{Przykład działania -- znajdowanie pikseli między dwoma czerwonymi}
-					\end{minipage}
-				\end{figure}
-				
-				Znając wszystkie piksele leżące między emiterem, a detektorem, 
-				sumujemy ich jasność i zapisujemy w odpowiednim miejscu sinogramu.
-				Na koniec, normalizujemy wszystkie dane, tak aby wartości były z~przedziału od~0~do~1.
-				 W tym celu znajdujemy największą wartość (najjaśniejszy piksel) i dzielimy przez nią pozostałe.
-				
-				\subsubsection{Obraz wynikowy}
-					Sinogram nie jest zrozumiały dla człowieka, 
-					dlatego należy go przekształcić.
-					Zaczynamy od czarnego obrazu i~znów przejdziemy przez n iteracji.
-					Każdej iteracji będzie przypisana pozycja emitera wraz z~detektorami 
-					(będą to te same pozycje, co podczas generowania sinogramu).
-					Wyznaczamy linie przechodzące przez obraz między emiterem i detektorami (algorytm Bresenhama).
-					Każdy piksel, przez który przechodzi linia będzie rozjaśniony o wartość odczytaną z sinogramu 
-					(dla danego detektora w danej iteracji). 
-					Nałożenie wszystkich linii na obrazie stworzy obraz wynikowy.
-				
-					\begin{figure}[!h]
-						\centering
-						\begin{minipage}{0.45\linewidth}
-							\includegraphics[width=\linewidth]{../tomograf-zdjecia/Shepp_logan.jpg} 
-							\caption{obraz wejściowy}
-						\end{minipage}
-						\hfill
-						\begin{minipage}{0.45\linewidth}
-							\includegraphics[width=\linewidth]{img/out_1.png}
-							\caption{obraz wyjściowy -- 1. iteracja}
-						\end{minipage}
-					\end{figure} 
-				
-					\begin{figure}[!h]
-						\centering
-						\begin{minipage}{0.45\linewidth}
-							\includegraphics[width=\linewidth]{img/out_30.png}
-							\caption{obraz wyjściowy -- 30. iteracja}
-						\end{minipage}
-						\hfill
-						\begin{minipage}{0.45\linewidth}
-							\includegraphics[width=\linewidth]{img/out_90.png}
-							\caption{obraz wyjściowy -- 90. iteracja}
-						\end{minipage}
-					\end{figure} 
-				
-				\subsection{Filtr}
-					Obraz wynikowy jest w znaczącym stopniu rozmyty.
-					Aby temu zapobiec, należy każdy dodatni sygnał z detektorów otoczyć ujemnymi wartościami.
-					\begin{figure}[!h]
-					\centering
-						\begin{lstlisting}[language=Python, frame=single]
-iteracja_freq = fft.rfft(iteracja)
-filtr = np.floor(np.arange(0.5, len(iteracja)//2 + 0.1, 0.5 ))
-out_freq = iteracja_freq * filtr
-out = fft.irfft(out_freq)
-						\end{lstlisting}
-						\caption{fragment kodu filtrującego}
-				\end{figure}
-					
-					Dane z detektorów przekształcamy do dziedziny częstotliwościowej,
-					 mnożymy przez filtr, 
-					 po czym wracamy do dziedziny przestrzennej.
-					Obraz po filtracji znacząco zyska na ostrości, lecz utraci na rozpiętości tonalnej.
-					Z~tego powodu przepuszczamy go przez funkcję zwiększającą kontrast.
-					
-					\begin{figure}[!h]
-						\centering
-						\begin{minipage}{0.45\linewidth}
-							\includegraphics[width=\linewidth]{img/filtr_1.png}
-							\caption{przykładowe dane z detektorów}
-						\end{minipage}
-						\hfill
-						\begin{minipage}{0.45\linewidth}
-							\includegraphics[width=\linewidth]{img/filtr_2.png}
-							\caption{dane z detektorów po przefiltrowaniu}
-						\end{minipage}
-					\end{figure}
-			
-			
-			\subsection{Standard DICOM}
-			Wyniki zapisujemy w standardzie DICOM. 
-			Do jego obsługi używamy biblioteki \texttt{pydicom}.
-			W pliku, oprócz samego skanu, zapisujemy też dane pacjenta (imię i nazwisko, płeć, datę urodzenia), komentarze, datę i czas badania.
-			Wykorzystujemy w tym celu następujące pola:
-			\begin{figure}[!h]
-				\centering
-				\begin{tabular}{|c|c|c|}
-				\hline
-				\textbf{Identyfikator pola} & \textbf{Nazwa pola} & \textbf{Opis} \\
-				\hline \hline
-				(0008, 0023) & Content Date & data badania \\
-				\hline
-				(0008, 0033) & Content Time & czas badania \\
-				\hline
-				(0010, 0010) & Patient's Name & imię i nazwisko pacjenta \\
-				\hline
-				(0010, 0030) & Patient's Birth Date & data urodzenia pacjenta \\
-				\hline
-				(0010, 0040) & Patient's Sex & płeć pacjenta \\
-				\hline
-				(0010, 4000) & Patient Comments & komentarze \\
-				\hline
-				(0028, 0010) & Rows & liczba wierszy obrazka (wysokość) \\
-				\hline
-				(0028, 0011) & Columns & liczba kolumn obrazka (szerokość) \\
-				\hline
-				(7fe0, 0010) & Pixel Data & obrazek (piksele) \\
-				\hline
-				\end{tabular}
-				\caption{Niektore z wykorzystanych pól}
-			\end{figure}
-			\newpage
-			Fragment kodu odpowiedzialnego za zapis pokazuje rysunek \ref{dicomsave}. Do odczytu pliku skorzystaliśmy z funkcji \texttt{pydicom.dcmread(filename)}, która pozwala następnie na dostęp do wszystkich pól z pliku.
-			
-			\begin{figure}[!h]
-				\centering
-				\begin{lstlisting}[language=Python, frame=single]
-ds = FileDataset(filename, {}, file_meta=file_meta, preamble=b"\0" * 128)
-ds.PatientName = name
-ds.PatientSex = sex
-ds.PatientBirthDate = birth.strftime('%Y%m%d')
-ds.PatientComments = comment
-
-ds.ContentDate = date.strftime('%Y%m%d')
-ds.ContentTime = date.strftime('%H%M%S.%f')
-
-# 1 lub 3 - ile kolorow na obrazie
-ds.SamplesPerPixel = 1
-# interpretacja (MONOCHROME, RGB, HSV, ...)
-ds.PhotometricInterpretation = "MONOCHROME2"
-# 0 - unsigned int, 1 - U2
-ds.PixelRepresentation = 0
-# najwyzszy bit
-ds.HighBit = 15
-# ilosc bitow na piksel
-ds.BitsStored = 16
-# ilosc bitow zaalokowanych na piksel
-ds.BitsAllocated = 16
-# minimalna wartosc piksela - 0x0000
-ds.SmallestImagePixelValue = str.encode('\x00\x00')
-# maksymalna wartosc piksela - 0xffff
-ds.LargestImagePixelValue = str.encode('\xff\xff')
-# kolumny, wiersze i dane
-ds.Columns = image.shape[1]
-ds.Rows = image.shape[0]
-ds.PixelData = (image * 65535).astype('uint16').tobytes()
-
-ds = correct_ambiguous_vr(ds, True)
-ds.save_as(filename, write_like_original=False)
-				\end{lstlisting}
-				\caption{Fragment kodu -- zapis do pliku DICOM}
-				\label{dicomsave}
-			\end{figure}
-			
-	\section{Eksperyment}
-		Korzystając z miary RMSE sprawdzimy, 
-		jak poszczególne parametry wpływają na jakość obrazu wyjściowego. 
-		Miara ta oblicza średnią różnicę koloru dla każdego piksela, w porównaniu do obrazu wejściowego (mniej -- lepiej). 
-		Do sprawdzenia wpływu parametrów, skorzystaliśmy z obrazu \texttt{Shepp\_logan.jpg} (Rysunek 4.).
-		
-		\newpage
-		\subsection{Wpływ parametrów na jakość obrazu}
-		
-		
-		\begin{figure}[!h]
-			\begin{minipage}{0.48\linewidth}
-				\begin{tikzpicture}
-					\begin{axis}[xlabel=Liczba detektorów (bez filtowania), ylabel=RMSE, only marks, xtick distance=90]
-					\addplot coordinates {
-						(	90	,	0.19766641872181315	)
-						(	180	,	0.21241692941458212	)
-						(	270	,	0.26905462144543296	)
-						(	360	,	0.3185885394517024	)
-						(	450	,	0.3639450780220456	)
-						(	540	,	0.4146778824868383	)
-						(	630	,	0.4395340917953436	)
-						(	720	,	0.4303860322190707	)
-					};
-					\end{axis}
-				\end{tikzpicture}
-			\end{minipage}
-			\hfill
-			\begin{minipage}{0.48\linewidth}
-				\begin{tikzpicture}
-					\begin{axis}[xlabel=Liczba detektorów (z filtowaniem), ylabel=RMSE, only marks, xtick distance=90]
-					\addplot coordinates {
-						(	90	,	0.47944557897904283	)
-						(	180	,	0.4672745431104078	)
-						(	270	,	0.46244981936422036	)
-						(	360	,	0.4574380736275415	)
-						(	450	,	0.4548210642769736	)
-						(	540	,	0.4520704744176787	)
-						(	630	,	0.4501465702251961	)
-						(	720	,	0.4484138396604839	)
-					};
-					\end{axis}
-				\end{tikzpicture}
-			\end{minipage}
-		\end{figure}
-		
-		\begin{figure}[!h]
-			\centering
-			\begin{minipage}{0.48\linewidth}
-				\begin{tikzpicture}
-					\begin{axis}[xlabel=Liczba skanów, ylabel=RMSE, only marks, xtick distance=90]
-					\addplot coordinates {
-						(	90	,	0.2174929558603675	)
-						(	180	,	0.21241692941458212	)
-						(	270	,	0.20935852709603195	)
-						(	360	,	0.2082807671066534	)
-						(	450	,	0.20821266152493592	)
-						(	540	,	0.20863697322807373	)
-						(	630	,	0.20817212780354352	)
-						(	720	,	0.2069512394127205	)
-					};
-					\end{axis}
-				\end{tikzpicture}
-			\end{minipage}
-			\hfill
-			\begin{minipage}{0.48\linewidth}
-				\begin{tikzpicture}
-					\begin{axis}[xlabel={Rozpiętość wachlarza [°]}, ylabel=RMSE, only marks, xtick distance=45]
-					\addplot coordinates {
-						(	45	,	0.2362	)
-						(	90	,	0.2195	)
-						(	135	,	0.2471	)
-						(	180	,	0.2124	)
-						(	225	,	0.2091	)
-						(	270	,	0.211	)
-					};
-					\end{axis}
-				\end{tikzpicture}
-			\end{minipage}
-			
-		\end{figure}
-				
-		W wersji bez filtrowania, błąd rośnie wraz z wzrostem \textbf{liczby detektorów}.
-		Wynika to z faktu, że ilość detektorów wpływa na jasność obrazu wyjściowego (więcej -- jaśniej).
-		 Nie występuje to w wersji z filtrem,
-		  ponieważ kompensujemy tę jasność dodatkowymi ujemnymi wartościami.
-		 Podczas oglądania wynikowych obrazów można jednoznacznie stwierdzić, 
-		 że większa liczba detektorów powoduje zwiększenie jakości obrazu.
-		 Warto nadmienić, że zbyt mała liczba detektorów wpływa na powstawanie defektów w postaci kręgów. 
-		
-		
-		Zwiększenie \textbf{liczby skanów} ma pozytywny wpływ na jakość obrazu wynikowego.
-		Gdy jest ich więcej, mniej widoczne stają się linie biegnące ze środka obrazu do zewnątrz, a także sam środek jest bardziej wyraźny, ma mniej defektów.
-		
-		Zastosowanie większej \textbf{rozpiętości wachlarza} również pozwala na zmniejszenie różnicy między obrazem wyjściowym, a oryginałem.
-		Bardzo mała rozpiętość powoduje, że wynik zdecydowanie odbiega od oczekiwań -- nie przypomina w żadnym stopniu obrazu wejściowego.
-		
-		\newpage
-		\subsection{Porównanie obrazu z filtrem i bez}
-			\begin{figure}[!h]
-				\centering
-				\begin{minipage}{0.45\linewidth}
-					\includegraphics[width=\linewidth]{img/shepp_nf.png}
-					\caption{wynik bez filtracji, RMSE -- 0.25}
-				\end{minipage}
-				\hfill
-				\begin{minipage}{0.45\linewidth}
-					\includegraphics[width=\linewidth]{img/shepp_f.png}
-					\caption{wynik z filtrem, RMSE -- 0.46}
-				\end{minipage}
-			\end{figure}
-			
-			\begin{figure}[!h]
-				\centering
-				\begin{minipage}{0.45\linewidth}
-					\includegraphics[width=\linewidth]{img/saddle_nf.png}
-					\caption{wynik bez filtracji, RMSE -- 0.31}
-				\end{minipage}
-				\hfill
-				\begin{minipage}{0.45\linewidth}
-					\includegraphics[width=\linewidth]{img/saddle_f.png}
-					\caption{wynik z filtrem, RMSE -- 0.33}
-				\end{minipage}
-			\end{figure}
-			
-			Różnica w jakości obrazów jest znacząca. 
-			Obrazy wyprodukowane przy użyciu filtra są wyraźne i szczegółowe. 
-			Miara jakości RMSE faworyzuje obrazy bez filtracji. 
-			Wynika to z faktu, że obrazy z filtrem, mimo swojej dokładności, 
-			mają większą różnicę w jasności względem oryginalnego obrazu. 
-			Obrazy bez filtra, mimo bycia rozmazanymi, 
-			średnio bardziej odpowiadają oryginałowi. 
-			Ponadto, filtracja wprowadza artefakty w postaci jasnych linii, 
-			szczególnie widocznych na ciemnym tle.
-\fi
 \end{document}

@@ -1,0 +1,24 @@
+\begin{figure}[!h]
+	\centering
+	\begin{minipage}{0.26\linewidth}
+		\includegraphics[width=\linewidth]{./dane/przetwarzanie obrazu/06L.png}
+		\centering
+			\small{przetwarzanie obrazu}
+	\end{minipage}
+	\hfill
+	\begin{minipage}{0.55\linewidth}
+		\begin{tabular}{|>{\columncolor[gray]{0.9}}c|c|c|}
+			\hline \rowcolor{Gray}
+			\diagbox{\textbf{pred.}}{\textbf{act.}} & \textbf{positives} & \textbf{negatives} \\ \hline
+			\textbf{positives} & 46484& 17420 \\ \hline
+			\textbf{negatives} & 26152& 868984 \\ \hline
+		\end{tabular}
+		\begin{tabular}{l r}
+			Accuracy (trafność): & 0.9546 \\
+			Sensitivity (czułość): & 0.6400 \\
+			Specificity (swoistość): & 0.9803 \\
+			Balanced accuracy: & 0.8102 \\
+			F1 score: & 0.6809 \\
+		\end{tabular}
+	\end{minipage}
+\end{figure}
