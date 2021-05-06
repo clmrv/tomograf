@@ -10,6 +10,7 @@
 \usepackage{xcolor} % do komentarzy
 \usepackage{diagbox} % macierz pomyłek
 \usepackage{color, colortbl}
+\usepackage{caption}
 
 \definecolor{Gray}{gray}{0.9}
 
@@ -26,28 +27,34 @@
 		Skorzystamy z technik przetwarzania obrazu, uczenia maszynowego oraz głębokiej sieci neuronowej.
 		Wyniki tych trzech metod porównamy ze sobą za pomocą wizualnej reprezentacji oraz miar jakości.
 		
-	\section{Środowisko}
+	\section{Środowisko i dane}
 		Skorzystaliśmy z języka Python w środowisku Jupyter Notebook,
 		co pozwoliło uzyskać interfejs użytkownika niskim kosztem.
 		Skorzystaliśmy również z bibliotek, które oferowały dodatkowe funkcjonalności, m.in.:
 		
 		\begin{description}
 			\item[skimage] przetwarzanie obrazów
-			\item [scipy] \texttt{\color{red} obliczanie momentów?}
-			\item [sklearn] podział zdjęcia na fragmenty \texttt{\color{red} train\_test\_split?}
+			\item [sklearn] klasyfikator -- drzewo decyzyjne
 			\item [keras] sieci neuronowe 
 			\item [pickle] zapis oraz odczyt wytrenowanych klasyfikatorów
 		\end{description}
 		
+		Jako dane wykorzystaliśmy zbiór CHASE, zawierający obrazy dna siatkówki oczu (lewych i prawych),
+		a~także maski z naczyniami oznaczonymi przez lekarze.
+		
+		Dane pochodzą ze strony \texttt{https://blogs.kingston.ac.uk/retinal/chasedb1/}
+		
 	\section{Opis metod}
 		\subsection{Przetwarzanie obrazu}
+		
+		W tej metodzie obraz został poddany podstawowym operacjom:
 			\begin{enumerate}
 				\item skala szarości -- 
 					skupiamy się jedynie na jasności obrazu
 					
-				\item dostosowanie gamma --
+				\item dostosowanie gamma
 				
-				\item dostosowanie ekspozycji --
+				\item dostosowanie ekspozycji
 				
 				\item rozmycie --
 					rozmycie gaussowskie  powinno zmniejszyć szum, który uwydatniłby się po wyostrzeniu
@@ -56,7 +63,7 @@
 					uwydatnia granice naczyń
 					
 				\item wykrywanie krawędzi --
-					uwydatnia granice naczyń, algorytm frangi
+					uwydatnia granice naczyń, algorytm Frangi
 					
 				\item maska binarna -- 
 					funkcja ustalająca poziom odcięcia, 
@@ -69,6 +76,43 @@
 				\item usunięcie okręgu -- 
 					powyższe operacje wygenerują jasny okrąg dookoła oka. Ta operacja zniweluje ten efekt poprzez nadpisanie.
 			\end{enumerate}
+			
+		\begin{figure}[!h]
+			\centering
+			\begin{minipage}{0.3\linewidth}
+				\includegraphics[width=\linewidth]{./dane/metoda1/gamma.png}
+				\caption*{Korekta gamma}
+			\end{minipage}
+			\begin{minipage}{0.3\linewidth}
+				\includegraphics[width=\linewidth]{./dane/metoda1/exposure.png}
+				\caption*{Korekta ekspozycji}
+			\end{minipage}
+			\begin{minipage}{0.3\linewidth}
+				\includegraphics[width=\linewidth]{./dane/metoda1/blur.png}
+				\caption*{Rozmycie}
+			\end{minipage}
+			\begin{minipage}{0.3\linewidth}
+				\includegraphics[width=\linewidth]{./dane/metoda1/sharpen.png}
+				\caption*{Wyostrzenie}
+			\end{minipage}
+			\begin{minipage}{0.3\linewidth}
+				\includegraphics[width=\linewidth]{./dane/metoda1/edges.png}
+				\caption*{Krawędzie}
+			\end{minipage}
+			\begin{minipage}{0.3\linewidth}
+				\includegraphics[width=\linewidth]{./dane/metoda1/binary.png}
+				\caption*{Maska binarna}
+			\end{minipage}
+			\begin{minipage}{0.3\linewidth}
+				\includegraphics[width=\linewidth]{./dane/metoda1/opening.png}
+				\caption*{Otwarcie}
+			\end{minipage}
+			\begin{minipage}{0.3\linewidth}
+				\includegraphics[width=\linewidth]{./dane/metoda1/ring.png}
+				\caption*{Usunięcie okręgu}
+			\end{minipage}
+			\caption*{Etapy przetwarzania obrazu}
+		\end{figure}
 		
 		\subsection{Uczenie maszynowe}
 			Na początek wstępnie edytujemy obraz wejściowy. Używamy niektórych funkcji z przetwarzania obrazu tj.:
@@ -87,7 +131,7 @@
 			Proces jest powtarzany dla kilku zdjęć wejściowych, aby otrzymać więcej danych.
 			
 			Uczymy klasyfikator, korzystając z wygenerowanych cech wraz z odpowiadającym im wynikiem z maski eksperckiej. 
-			Nasz klasyfikator to las decyzyjny (sklearn.tree.DecisionTreeClassifier).
+			Nasz klasyfikator to drzewo decyzyjne (\texttt{sklearn.tree.DecisionTreeClassifier}).
 			Został wytrenowany na zbiorze 500000 losowych próbek o rozmiarze 9x9 z zdjęć 
 			\textit{01L}, \textit{01R}, \textit{02R}, \textit{03L}, \textit{03R}.
 		
@@ -98,12 +142,22 @@ Obliczana jest średnia i odchylenie standardowe każdego kanału we fragmencie 
 Następnie każdy kanał każdego piksela jest normalizowany —- odejmowana
 jest od niego średnia i dzielony jest przez odchylenie standardowe.
 Poniżej przedstawione zostało działanie tej funkcji na wybranym fragmencie:
-\\ wstawić porównanie
-Do trenowania wykorzystano 500 tysięcy losowych fragmentów pochodzących z plików \textit{01L}, \textit{01R}, \textit{02L}, \textit{02R}, \textit{03L}, \textit{03R}. Dane zostały następnie podzielone na zbiór treningowy (67%) i testowy (33%).
+
+\begin{figure}[!h]
+	\centering
+	\begin{minipage}{0.3\linewidth}
+		\includegraphics[scale=0.5]{./dane/preprocess.png}
+	\end{minipage}
+	\begin{minipage}{0.3\linewidth}
+		\includegraphics[scale=0.5]{./dane/postprocess.png}
+	\end{minipage}
+\end{figure}
+
+Do trenowania wykorzystano 500 tysięcy losowych fragmentów pochodzących z plików \textit{01L}, \textit{01R}, \textit{02L}, \textit{02R}, \textit{03L}, \textit{03R}. Dane zostały następnie podzielone na zbiór treningowy (67\%) i testowy (33\%).
 
 Sieć została stworzona z wykorzystaniem biblioteki \texttt{keras}.
 Składa się z 23 warstw i przypomina architekturę U-Net. 
-Początkowo zastosowano dwie warstwy konwolucyjne o filtrze (wymiarowości wyjścia) równym 32 i rozmiarze okna 3x3.
+Początkowo zastosowano dwie warstwy konwolucyjne o filtrze (wymiarowości wyjścia) równym 32 i~rozmiarze okna 3x3.
 Następnie zastosowano warstwę max pooling o oknie 2x2 przemieszczającym się o 2, która zmniejsza wielkość wyjścia.
 Taki zestaw warstw powtórzono, zmieniając filtr na wartości: 48, 64, 96, 64, 38, 32.
 Na końcu zastosowano warstwę wypłaszczającą oraz warstwę, gdzie każdy neuron jest połączony ze sobą (Dense) o sigmoidalnej funkcji aktywacji.
@@ -119,9 +173,10 @@ Wstępna ocena sieci na danych testowych:
 \subsubsection*{Rozmiar wycinka}
 Zastosowano rozmiar wycinka 19x19. Mniejsze wycinki powodowały pogorszenie parametrów, przy większych czas tworzenia fragmentów i wstępnego przetwarzania był bardzo długi. Poniżej porównanie miar dla tego samego obrazka przy zastosowaniu różnych wycinków:
 
+\begin{center}
 \begin{tabular}{|r|c|c|}
 \hline
-box               & 17                                            & 19                                            \\ \hline \hline
+\textbf{Rozmiar wycinka} & \textbf{17} & \textbf{19}  \\ \hline \hline
 TP                & 59039                                         & 58529                                         \\ \hline
 TN                & 829336                                        & 830092                                        \\ \hline
 FP                & 23448                                         & 18842                                         \\ \hline
@@ -131,8 +186,9 @@ sensitivity       & 0.7854                                        & 0.7786      
 specificity       & 0.9725                                        & 0.9778                                        \\ \hline
 balanced accuracy & 0.879                                         & 0.8782                                        \\ \hline
 F1                & 0.749                                         & 0.7674                                        \\ \hline
-Obraz             & \includegraphics[width=4cm]{./dane/box17.jpg} & \includegraphics[width=4cm]{./dane/box19.jpg} \\ \hline
-\end{tabular}		
+Obraz             & \includegraphics[width=5cm]{./dane/box17.jpg} & \includegraphics[width=5cm]{./dane/box19.jpg} \\ \hline
+\end{tabular}
+\end{center}	
 		
 	\section{Wyniki}
 		Obrazy wynikowe dla poszczególnych metod są przedstawione jako porównanie z maską ekspercką.
@@ -256,5 +312,22 @@ Obraz             & \includegraphics[width=4cm]{./dane/box17.jpg} & \includegrap
 
 	
 	\section{Wnioski}
+	
+	Przetwarzanie obrazu zwraca bardzo ograniczone wyniki,
+	 ponieważ jest oparte na wykrywaniu krawędzi.
+	 Ta metoda jest wrażliwa na szum oraz zmienną jasność na zdjęciu.
+	 Najczęściej wynik końcowy to kompromis
+	 pomiędzy brakiem wyników fałszywie pozytywnych, 
+	 a wykryciem wszystkich naczyń.
+	
+	Sieć neuronowa całkiem dobrze radzi sobie z wykrywaniem naczyń.
+	Dysponując większą mocą obliczeniową,
+	można by zwiększyć liczbę warstw i uczyć na większych fragmentach obrazu,
+	co poskutkowałoby jeszcze lepszym rezultatem.
+	
+	Podejścia różnią się czasem uzyskania rezultatu dla danego obrazu.
+	W przypadku pierwszych dwóch podejść
+	(i z wytrenowanym już klasyfikatorem) wynik można otrzymać
+	w kilka sekund. W przypadku sieci neuronowej może to potrwać nawet kilka minut.
 		
 \end{document}
