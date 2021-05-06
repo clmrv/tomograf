@@ -1,0 +1,24 @@
+\begin{figure}[!h]
+	\centering
+	\begin{minipage}{0.26\linewidth}
+		\includegraphics[width=\linewidth]{./dane/uczenie maszynowe/02L.png}
+		\centering
+			\small{uczenie maszynowe}
+	\end{minipage}
+	\hfill
+	\begin{minipage}{0.55\linewidth}
+		\begin{tabular}{|>{\columncolor[gray]{0.9}}c|c|c|}
+			\hline \rowcolor{Gray}
+			\diagbox{\textbf{pred.}}{\textbf{act.}} & \textbf{positives} & \textbf{negatives} \\ \hline
+			\textbf{positives} & 47596& 110308 \\ \hline
+			\textbf{negatives} & 30224& 755304 \\ \hline
+		\end{tabular}
+		\begin{tabular}{l r}
+			Accuracy (trafność): & 0.8510 \\
+			Sensitivity (czułość): & 0.6116 \\
+			Specificity (swoistość): & 0.8726 \\
+			Balanced accuracy: & 0.7421 \\
+			F1 score: & 0.4038 \\
+		\end{tabular}
+	\end{minipage}
+\end{figure}

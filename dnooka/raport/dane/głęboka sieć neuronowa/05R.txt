@@ -1,0 +1,24 @@
+\begin{figure}[!h]
+	\centering
+	\begin{minipage}{0.26\linewidth}
+		\includegraphics[width=\linewidth]{./dane/głęboka sieć neuronowa/05R.png}
+		\centering
+			\small{głęboka sieć neuronowa}
+	\end{minipage}
+	\hfill
+	\begin{minipage}{0.55\linewidth}
+		\begin{tabular}{|>{\columncolor[gray]{0.9}}c|c|c|}
+			\hline \rowcolor{Gray}
+			\diagbox{\textbf{pred.}}{\textbf{act.}} & \textbf{positives} & \textbf{negatives} \\ \hline
+			\textbf{positives} & 62629& 12400 \\ \hline
+			\textbf{negatives} & 19034& 830039 \\ \hline
+		\end{tabular}
+		\begin{tabular}{l r}
+			Accuracy (trafność): & 0.9660 \\
+			Sensitivity (czułość): & 0.7669 \\
+			Specificity (swoistość): & 0.9853 \\
+			Balanced accuracy: & 0.8761 \\
+			F1 score: & 0.7994 \\
+		\end{tabular}
+	\end{minipage}
+\end{figure}
