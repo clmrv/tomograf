@@ -40,9 +40,8 @@
 		\end{description}
 		
 		Jako dane wykorzystaliśmy zbiór CHASE, zawierający obrazy dna siatkówki oczu (lewych i prawych),
-		a~także maski z naczyniami oznaczonymi przez lekarze.
-		
-		Dane pochodzą ze strony \texttt{https://blogs.kingston.ac.uk/retinal/chasedb1/}
+		a~także maski z naczyniami oznaczonymi przez lekarzy. 
+		Dane pochodzą ze strony \\ \texttt{https://blogs.kingston.ac.uk/retinal/chasedb1/}
 		
 	\section{Opis metod}
 		\subsection{Przetwarzanie obrazu}
@@ -127,22 +126,22 @@
 			Z pobranych fragmentów usuwamy te, które są poza obszarem oka (czarne tło).
 			Następnie wybieramy losowe próbki ze zdjęcia w proporcji 50\% z klasy negatywnej i 50\% z pozytywnej.
 			Każdą próbkę zamieniamy na zestaw cech dla klasyfikatora.
-			W naszym przypadku jest to wektor wartości RGB kolejnych pikseli w fragmencie. 
-			Proces jest powtarzany dla kilku zdjęć wejściowych, aby otrzymać więcej danych.
+			W naszym przypadku jest to wektor wartości RGB kolejnych pikseli we fragmencie. 
+			Proces jest powtarzany dla kilku zdjęć, aby otrzymać więcej danych.
 			
 			Uczymy klasyfikator, korzystając z wygenerowanych cech wraz z odpowiadającym im wynikiem z maski eksperckiej. 
 			Nasz klasyfikator to drzewo decyzyjne (\texttt{sklearn.tree.DecisionTreeClassifier}).
-			Został wytrenowany na zbiorze 500000 losowych próbek o rozmiarze 9x9 z zdjęć 
+			Został wytrenowany na zbiorze 500 tysięcy losowych próbek o rozmiarze 9x9 ze zdjęć 
 			\textit{01L}, \textit{01R}, \textit{02R}, \textit{03L}, \textit{03R}.
 		
 		\subsection{Głęboka sieć neuronowa}
+		
 			Obraz, przed wejściem do sieci, dzielony jest na fragmenty o wielkości 19x19 pikseli.
 Następnie na każdym fragmencie wykonywana jest globalna normalizacja kontrastu.
-Obliczana jest średnia i odchylenie standardowe każdego kanału we fragmencie (czerwony, zielony i niebieski).
-Następnie każdy kanał każdego piksela jest normalizowany —- odejmowana
+Obliczane są średnia i odchylenie standardowe każdego kanału we fragmencie (czerwony, zielony i niebieski).
+Następnie każdy kanał każdego piksela jest normalizowany -- odejmowana
 jest od niego średnia i dzielony jest przez odchylenie standardowe.
 Poniżej przedstawione zostało działanie tej funkcji na wybranym fragmencie:
-
 \begin{figure}[!h]
 	\centering
 	\begin{minipage}{0.3\linewidth}
@@ -152,8 +151,7 @@ Poniżej przedstawione zostało działanie tej funkcji na wybranym fragmencie:
 		\includegraphics[scale=0.5]{./dane/postprocess.png}
 	\end{minipage}
 \end{figure}
-
-Do trenowania wykorzystano 500 tysięcy losowych fragmentów pochodzących z plików \textit{01L}, \textit{01R}, \textit{02L}, \textit{02R}, \textit{03L}, \textit{03R}. Dane zostały następnie podzielone na zbiór treningowy (67\%) i testowy (33\%).
+\\ Do trenowania wykorzystano 500 tysięcy losowych fragmentów pochodzących z plików \textit{01L}, \textit{01R}, \textit{02L}, \textit{02R}, \textit{03L}, \textit{03R}. Dane zostały następnie podzielone na zbiór treningowy (67\%) i testowy (33\%).
 
 Sieć została stworzona z wykorzystaniem biblioteki \texttt{keras}.
 Składa się z 23 warstw i przypomina architekturę U-Net. 
@@ -161,9 +159,7 @@ Początkowo zastosowano dwie warstwy konwolucyjne o filtrze (wymiarowości wyjś
 Następnie zastosowano warstwę max pooling o oknie 2x2 przemieszczającym się o 2, która zmniejsza wielkość wyjścia.
 Taki zestaw warstw powtórzono, zmieniając filtr na wartości: 48, 64, 96, 64, 38, 32.
 Na końcu zastosowano warstwę wypłaszczającą oraz warstwę, gdzie każdy neuron jest połączony ze sobą (Dense) o sigmoidalnej funkcji aktywacji.
-
 Do danych z wyjścia sieci zastosowano próg 0.3, powyżej którego piksel uznawany jest za naczynie.
-
 Wstępna ocena sieci na danych testowych:
 \begin{itemize}
     \item strata (loss) = 8.39%
@@ -171,11 +167,10 @@ Wstępna ocena sieci na danych testowych:
 \end{itemize}
 
 \subsubsection*{Rozmiar wycinka}
-Zastosowano rozmiar wycinka 19x19. Mniejsze wycinki powodowały pogorszenie parametrów, przy większych czas tworzenia fragmentów i wstępnego przetwarzania był bardzo długi. Poniżej porównanie miar dla tego samego obrazka przy zastosowaniu różnych wycinków:
-
+Zastosowano rozmiar wycinka 19x19. Mniejsze wycinki powodowały pogorszenie parametrów, przy większych czas tworzenia fragmentów i wstępnego przetwarzania był zbyt długi. Poniżej porównanie miar dla tego samego obrazka przy zastosowaniu różnych wycinków:
 \begin{center}
-\begin{tabular}{|r|c|c|}
-\hline
+\begin{tabular}{|>{\columncolor[gray]{0.9}}r|c|c|}
+\hline \rowcolor{Gray}
 \textbf{Rozmiar wycinka} & \textbf{17} & \textbf{19}  \\ \hline \hline
 TP                & 59039                                         & 58529                                         \\ \hline
 TN                & 829336                                        & 830092                                        \\ \hline
@@ -188,7 +183,7 @@ balanced accuracy & 0.879                                         & 0.8782      
 F1                & 0.749                                         & 0.7674                                        \\ \hline
 Obraz             & \includegraphics[width=5cm]{./dane/box17.jpg} & \includegraphics[width=5cm]{./dane/box19.jpg} \\ \hline
 \end{tabular}
-\end{center}	
+\end{center}
 		
 	\section{Wyniki}
 		Obrazy wynikowe dla poszczególnych metod są przedstawione jako porównanie z maską ekspercką.
@@ -200,7 +195,7 @@ Obraz             & \includegraphics[width=5cm]{./dane/box17.jpg} & \includegrap
 		\end{description}
 \newpage
 	
-		\subsection{04L}
+		\subsection{Zdjęcie \textit{04L}}
 
 \begin{figure}[!h]
 	\centering
@@ -222,7 +217,7 @@ Obraz             & \includegraphics[width=5cm]{./dane/box17.jpg} & \includegrap
 
 
 
-		\subsection{05R}
+		\subsection{Zdjęcie \textit{05R}}
 
 \begin{figure}[!h]
 	\centering
@@ -245,7 +240,7 @@ Obraz             & \includegraphics[width=5cm]{./dane/box17.jpg} & \includegrap
 
 
 
-		\subsection{06L}
+		\subsection{Zdjęcie \textit{06L}}
 
 \begin{figure}[!h]
 	\centering
@@ -267,7 +262,7 @@ Obraz             & \includegraphics[width=5cm]{./dane/box17.jpg} & \includegrap
 
 
 
-		\subsection{07R}
+		\subsection{Zdjęcie \textit{07R}}
 		
 \begin{figure}[!h]
 	\centering
@@ -289,7 +284,7 @@ Obraz             & \includegraphics[width=5cm]{./dane/box17.jpg} & \includegrap
 
 
 
-		\subsection{08L}
+		\subsection{Zdjęcie \textit{08L}}
 
 \begin{figure}[!h]
 	\centering
@@ -313,12 +308,24 @@ Obraz             & \includegraphics[width=5cm]{./dane/box17.jpg} & \includegrap
 	
 	\section{Wnioski}
 	
-	Przetwarzanie obrazu zwraca bardzo ograniczone wyniki,
+	 Przetwarzanie obrazu zwraca bardzo ograniczone wyniki,
 	 ponieważ jest oparte na wykrywaniu krawędzi.
 	 Ta metoda jest wrażliwa na szum oraz zmienną jasność na zdjęciu.
 	 Najczęściej wynik końcowy to kompromis
 	 pomiędzy brakiem wyników fałszywie pozytywnych, 
 	 a wykryciem wszystkich naczyń.
+	 
+	 Metoda uczenia maszynowego, 
+	 w porównaniu do zwykłego przetwarzania, 
+	 lepiej wykrywa mniejsze naczynia.
+	 W części przypadków liczba prawdziwie pozytywnych klasyfikacji jest większa w uczeniu maszynowym, 
+	 a w części w zwykłym  przetwarzaniu obrazów.
+	 Jest to spowodowane tym, 
+	 że choć uczenie maszynowe lepiej wykrywa poszczególne naczynia (nawet te małe),
+	 to w przypadku tych większych ma problemy z ich wypełnieniem.
+	 Ta metoda ma największą liczbę przypadków fałszywie pozytywnych.
+	 Powstały szum, można by zredukować, 
+	 lecz utracilibyśmy również niektóre przypadki pozytywnego wykrycia naczyń.
 	
 	Sieć neuronowa całkiem dobrze radzi sobie z wykrywaniem naczyń.
 	Dysponując większą mocą obliczeniową,
